@@ -2,10 +2,10 @@ module Main where
 
 import LambdaParse
 import TypeInference
-import RegTree
 import Data.Map as Map
 import Lambda
 import Data.List as List
+import Type
 
 main :: IO ()
 main = do takeLine
@@ -15,11 +15,13 @@ takeLine :: IO ()
 takeLine = do putStr ">> "
               line <- getLine
               let (e, varNames) = lambdaParseInfo line
-              let (t, free, _) = infer e
-              let (lIds, types) = unzip (toList free)
-              let (asString: freeVarTypes) = typesToStrings (t: types)
-              putStrLn asString
-              putStrLn (freeVarInfo lIds varNames freeVarTypes)
+              case infer e of
+                Just (t, free) ->
+                  do let (lIds, types) = unzip (toList free)
+                     let (asString: freeVarTypes) = typesToStrings (t: types)
+                     putStrLn asString
+                     putStrLn (freeVarInfo lIds varNames freeVarTypes)
+                Nothing -> putStrLn "Conflicting types"
 -- main = putStrLn "Hello, Haskell!"
 
 freeVarInfo :: [LId] -> (Map LId String) -> [String] -> String

@@ -30,7 +30,7 @@ version = Version [0,1,0,0] []
 bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
 
 bindir     = "/home/jacob/.cabal/bin"
-libdir     = "/home/jacob/.cabal/lib/x86_64-linux-ghc-8.0.2/type-inference-0.1.0.0"
+libdir     = "/home/jacob/.cabal/lib/x86_64-linux-ghc-8.0.2/type-inference-0.1.0.0-74f3K533alvF8RyKSnBn2o"
 dynlibdir  = "/home/jacob/.cabal/lib/x86_64-linux-ghc-8.0.2"
 datadir    = "/home/jacob/.cabal/share/x86_64-linux-ghc-8.0.2/type-inference-0.1.0.0"
 libexecdir = "/home/jacob/.cabal/libexec"

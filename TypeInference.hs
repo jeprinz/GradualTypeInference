@@ -48,6 +48,7 @@ inferI (App e1 e2) =
      let tau' = applySubs subs2 tau
 
      return (tau', free')
+inferI (LAtomic t) = return (t, Map.empty)
 
 -- problem: returns wrong when given [x -> A], [x -> B] -- note to self: is this still relevant?
 combineFreeVars :: FreeVars -> FreeVars -> (FreeVars, Substitutions)

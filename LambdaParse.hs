@@ -13,11 +13,25 @@ import qualified Text.ParserCombinators.Parsec.Token as Token
 
 import Control.Monad.State
 import Data.Map as Map
+import Data.List as List
+
+import Type
 
 -- This is adaped from the following tutorial:
 -- https://wiki.haskell.org/Parsing_a_simple_imperative_language
 
-data MedExp = MedApp MedExp MedExp | MedLambda String MedExp | MedVar String deriving(Show)
+data MedExp = MedApp MedExp MedExp | MedLambda String MedExp | MedVar String | MedAtomic Type deriving(Show)
+
+--The following is a list of built in constants
+constants :: [(Type, String)]
+constants = [(Atomic "num", "5"),
+             (Atomic "num", "0"),
+             (Atomic "num", "1"),
+             (Atomic "bool", "true"),
+             (Atomic "bool", "false"),
+             (Fun (Atomic "num") (Fun (Atomic "num") (Atomic "num")), "plus"),
+             (Fun (Atomic "bool") (Fun (Atomic "num") (Fun (Atomic "num") (Atomic "num"))), "if"),
+             (Fun (Atomic "num") (Fun (Atomic "num") (Atomic "bool")), "equals")]
 
 languageDef =
   emptyDef { Token.commentStart    = "/*"
@@ -25,7 +39,7 @@ languageDef =
            , Token.commentLine     = "//"
            , Token.identStart      = letter
            , Token.identLetter     = alphaNum
-           , Token.reservedNames   = [ "l" ]
+           , Token.reservedNames   = [ "l" ] ++ snd (unzip constants)
            , Token.reservedOpNames = [ "." ] -- TODO: what is difference between reservedNames and reservedOpNames
            }
 
@@ -53,7 +67,7 @@ seqOfExpression =
      return $ if length list == 1 then head list else foldl1 MedApp list
 
 expression' :: Parser MedExp
-expression' = (parens expression) <|> varExp <|> lamExp
+expression' = (parens expression) <|> varExp <|> lamExp <|> builtinExps
 -- expression :: Parser MedExp
 -- expression =   parens expression
 --           <|> seqOfExpression
@@ -77,6 +91,12 @@ lamExp = do reserved "l"
             e <- expression
             return (MedLambda varName e)
 
+makeBuiltinExp :: Type -> String -> Parser MedExp
+makeBuiltinExp t name = do reserved name
+                           return $ MedAtomic t
+
+builtinExps = List.foldr1 (<|>) $ List.map (\(t, s) -> makeBuiltinExp t s) constants
+
 appExp :: Parser MedExp
 appExp = do e1 <- expression
             e2 <- expression
@@ -94,13 +114,14 @@ type TypeState' = TypeState String LId
 
 varsConvertI :: MedExp -> TypeState' Exp
 varsConvertI (MedVar v) = do id <- getName v
-                             return (Var id)
+                             return (Lambda.Var id)
 varsConvertI (MedApp me1 me2) = do e1 <- varsConvertI me1
                                    e2 <- varsConvertI me2
                                    return (App e1 e2)
 varsConvertI (MedLambda v me) = do id <- getName v
                                    e <- varsConvertI me
                                    return (Lam id e)
+varsConvertI (MedAtomic s) = return $ LAtomic s
 
 lambdaParse :: String -> Exp
 lambdaParse str = evalState (varsConvertI (parseMed str)) (ids, Map.empty) where

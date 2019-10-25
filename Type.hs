@@ -93,6 +93,7 @@ typeToStringI (Fun t1 t2) parens = do
 typeToStringI (Var v) _ = do name <- getName v
                              return [name]
 typeToStringI Dynamic _ = return "?"
+typeToStringI (Atomic s) _ = return s
 
 typeToString :: Type -> String
 typeToString t = evalState (typeToStringI t False) (['A'..'Z'], Map.empty)

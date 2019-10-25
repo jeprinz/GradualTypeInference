@@ -7,12 +7,15 @@ import Lambda
 import Data.List as List
 import Type
 
+import System.IO
+
 main :: IO ()
 main = do takeLine
           main
 
 takeLine :: IO ()
 takeLine = do putStr ">> "
+              hFlush stdout
               line <- getLine
               let (e, varNames) = lambdaParseInfo line
               case infer e of
